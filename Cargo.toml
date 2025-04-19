@@ -1,0 +1,3 @@
+[workspace]
+members = ["discrete_law"]
+resolver = "3"
