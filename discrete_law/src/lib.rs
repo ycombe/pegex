@@ -37,43 +37,62 @@ fn cdf_from (ratios: &[f64]) -> Vec<OrderedFloat<f64>> {
     cdf
 }
 
-
 #[derive(Debug)]
-pub struct DiscreteFiniteRandomExperiment<T: std::fmt::Debug + Eq + Hash> {
-    omega: Vec<T>,
-    //law: Vec<f64>,
-    cdf: Vec<OrderedFloat<f64>>
+pub struct DiscreteFiniteDistribution {
+    pub law: Vec<f64>,
+    pub cdf:  Vec<OrderedFloat<f64>>
 }
 
-impl<T: std::fmt::Debug + Eq + Hash> DiscreteFiniteRandomExperiment<T> {
+impl DiscreteFiniteDistribution {
+    pub fn new( law: &[f64] ) -> Self {
+        DiscreteFiniteDistribution { 
+            law: law.to_vec(), 
+            cdf: cdf_from( law)
+        }
+    }
+
+    pub fn sample(&self) -> usize {
+        let u: OrderedFloat<f64> = OrderedFloat(random());
+        position(&self.cdf, u)
+    }
+
+}
+
+#[derive(Debug)]
+pub struct DiscreteFiniteRandomExperiment<T> {
+    pub omega: Vec<T>,
+    pub distribution: DiscreteFiniteDistribution
+}
+
+impl<T> DiscreteFiniteRandomExperiment<T> {
     pub fn new( omega: Vec<T>, law: &[f64]) -> Self {
         DiscreteFiniteRandomExperiment {
             omega,
-            //law: law.to_vec(),
-            cdf: cdf_from(law) }
+            distribution: DiscreteFiniteDistribution::new(law)
+        }
     }
 
     pub fn sample(&self) -> &T {
-        let u: OrderedFloat<f64> = OrderedFloat(random());
-        &self.omega[position(&self.cdf, u)]
-    }
-
-    pub fn print_simulation(&self, n: usize) {
-        //let simulation: Vec<&T> = Vec::new();
-        let mut table: HashMap<&T, i32> = HashMap::new();
-
-        for _ in 0..n {
-            let o = self.sample();
-            //simuation.push(o);
-            *table.entry(o).or_insert(0) += 1;
-        }
-    
-        for o in &self.omega {
-                println!("{:?}: {}", o, *table.get(o).unwrap_or(&0) as f64 / n as f64 );
-        }
-        
+        &self.omega[self.distribution.sample()]
     }
 }
+
+pub fn print_simulation<T: std::fmt::Debug + Eq + Hash> (experiment: &DiscreteFiniteRandomExperiment<T>, n: usize) {
+    //let simulation: Vec<&T> = Vec::new();
+    let mut table: HashMap<&T, i32> = HashMap::new();
+
+    for _ in 0..n {
+        let o = experiment.sample();
+        //simuation.push(o);
+        *table.entry(o).or_insert(0) += 1;
+    }
+
+    for o in &experiment.omega {
+            println!("{:?}: {}", o, *table.get(o).unwrap_or(&0) as f64 / n as f64 );
+    }
+    
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -83,12 +102,12 @@ mod tests {
     fn distribution_check() {
         let piped_dice = 
                 DiscreteFiniteRandomExperiment::new(vec![1,2,3,4,5,6], &vec![1.0,4.0,4.0,4.0,4.0,7.0]);
-        assert!(piped_dice.cdf[0] - OrderedFloat(1.0/24.0) <= OrderedFloat(f64::EPSILON));
-        assert!(piped_dice.cdf[1] - OrderedFloat(5.0/24.0) <= OrderedFloat(f64::EPSILON));
-        assert!(piped_dice.cdf[2] - OrderedFloat(9.0/24.0) <= OrderedFloat(f64::EPSILON));
-        assert!(piped_dice.cdf[3] - OrderedFloat(13.0/24.0) <= OrderedFloat(f64::EPSILON));
-        assert!(piped_dice.cdf[4] - OrderedFloat(17.0/24.0) <= OrderedFloat(f64::EPSILON));
-        assert!(piped_dice.cdf[5] - OrderedFloat(1.0) <= OrderedFloat(f64::EPSILON));
+        assert!(piped_dice.distribution.cdf[0] - OrderedFloat(1.0/24.0) <= OrderedFloat(f64::EPSILON));
+        assert!(piped_dice.distribution.cdf[1] - OrderedFloat(5.0/24.0) <= OrderedFloat(f64::EPSILON));
+        assert!(piped_dice.distribution.cdf[2] - OrderedFloat(9.0/24.0) <= OrderedFloat(f64::EPSILON));
+        assert!(piped_dice.distribution.cdf[3] - OrderedFloat(13.0/24.0) <= OrderedFloat(f64::EPSILON));
+        assert!(piped_dice.distribution.cdf[4] - OrderedFloat(17.0/24.0) <= OrderedFloat(f64::EPSILON));
+        assert!(piped_dice.distribution.cdf[5] - OrderedFloat(1.0) <= OrderedFloat(f64::EPSILON));
         let r = piped_dice.sample();
         assert!( piped_dice.omega.contains(r) );     
      }
