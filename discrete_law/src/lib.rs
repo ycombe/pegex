@@ -85,6 +85,13 @@ impl<T> DiscreteFiniteRandomExperiment<T> {
     }
 }
 
+impl<T: Clone> Distribution<T> for DiscreteFiniteRandomExperiment<T>
+{
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> T {
+        self.omega[Distribution::sample(&self.distribution, rng)].clone()
+    }
+}
+
 pub fn print_simulation<T: std::fmt::Debug + Eq + Hash> (experiment: &DiscreteFiniteRandomExperiment<T>, n: usize) {
     //let simulation: Vec<&T> = Vec::new();
     let mut table: HashMap<&T, i32> = HashMap::new();
