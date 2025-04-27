@@ -1,8 +1,9 @@
 use iter_accumulate::IterAccumulate;
 use ordered_float::OrderedFloat;
-use rand::random;
+use rand::distr::{Distribution, Uniform};
 use std::collections::HashMap;
 use std::hash::Hash;
+use rand::{Rng, random};
 
 
 fn position(list: &[OrderedFloat<f64>], value: OrderedFloat<f64>) -> usize {
@@ -56,6 +57,13 @@ impl DiscreteFiniteDistribution {
         position(&self.cdf, u)
     }
 
+}
+
+impl Distribution<usize> for DiscreteFiniteDistribution {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> usize {
+        let u: OrderedFloat<f64> = OrderedFloat(rng.sample(Uniform::new(0.0, 1.0).unwrap()));
+        position(&self.cdf, u)
+    }
 }
 
 #[derive(Debug)]
