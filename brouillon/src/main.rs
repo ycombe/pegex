@@ -1,6 +1,6 @@
+/* 
 use std::collections::HashMap;
 use discrete_law::DiscreteFiniteRandomExperiment;
-use rand::rng;
 use rand::prelude::Distribution;
 
 fn main() {
@@ -25,4 +25,13 @@ fn main() {
     for (issue, ns) in &table {
         println!("{}: {}", *issue, *ns as f64 / n as f64 );
     }
+}
+ */
+
+use brouillon::configuration::Config;
+
+fn main() {
+    let conf = Config::new();
+
+    println!("fin: config {:?}", conf);
 }

@@ -4,5 +4,6 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.5.37", features = ["derive"] }
 discrete_law = { version = "0.1.0", path = "../discrete_law" }
 rand = "0.9.1"
