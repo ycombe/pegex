@@ -3,7 +3,7 @@ use ordered_float::OrderedFloat;
 use rand::distr::{Distribution, Uniform};
 use std::collections::HashMap;
 use std::hash::Hash;
-use rand::{Rng, random};
+use rand::Rng;
 
 
 fn position(list: &[OrderedFloat<f64>], value: OrderedFloat<f64>) -> usize {
@@ -52,10 +52,10 @@ impl DiscreteFiniteDistribution {
         }
     }
 
-    pub fn sample(&self) -> usize {
-        let u: OrderedFloat<f64> = OrderedFloat(random());
-        position(&self.cdf, u)
-    }
+//    pub fn sample(&self) -> usize {
+//        let u: OrderedFloat<f64> = OrderedFloat(random());
+//        position(&self.cdf, u)
+//    }
 
 }
 
@@ -80,9 +80,9 @@ impl<T> DiscreteFiniteRandomExperiment<T> {
         }
     }
 
-    pub fn sample(&self) -> &T {
-        &self.omega[self.distribution.sample()]
-    }
+//    pub fn sample(&self) -> &T {
+//        &self.omega[self.distribution.sample()]
+//    }
 }
 
 impl<T: Clone> Distribution<T> for DiscreteFiniteRandomExperiment<T>
@@ -92,12 +92,13 @@ impl<T: Clone> Distribution<T> for DiscreteFiniteRandomExperiment<T>
     }
 }
 
-pub fn print_simulation<T: std::fmt::Debug + Eq + Hash> (experiment: &DiscreteFiniteRandomExperiment<T>, n: usize) {
+pub fn print_simulation<T: std::fmt::Debug + Eq + Hash + Clone> (experiment: &DiscreteFiniteRandomExperiment<T>, n: usize) {
     //let simulation: Vec<&T> = Vec::new();
-    let mut table: HashMap<&T, i32> = HashMap::new();
+    let mut table: HashMap<T, i32> = HashMap::new();
+    let mut rng = rand::rng();
 
     for _ in 0..n {
-        let o = experiment.sample();
+        let o = experiment.sample(&mut rng);
         //simuation.push(o);
         *table.entry(o).or_insert(0) += 1;
     }
@@ -123,7 +124,7 @@ mod tests {
         assert!(piped_dice.distribution.cdf[3] - OrderedFloat(13.0/24.0) <= OrderedFloat(f64::EPSILON));
         assert!(piped_dice.distribution.cdf[4] - OrderedFloat(17.0/24.0) <= OrderedFloat(f64::EPSILON));
         assert!(piped_dice.distribution.cdf[5] - OrderedFloat(1.0) <= OrderedFloat(f64::EPSILON));
-        let r = piped_dice.sample();
-        assert!( piped_dice.omega.contains(r) );     
+        let r = piped_dice.sample(&mut rand::rng());
+        assert!( piped_dice.omega.contains(&r) );     
      }
 }
