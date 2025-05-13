@@ -22,7 +22,7 @@ pub mod configuration {
         #[arg(short, default_value_t = 1)]
         n: usize,
     
-        /// Random number generator name or file
+        /// RNG (Random number generator)
         #[arg(short, long, default_value_t = String::from("chacha"))]
         rng: String,
 
@@ -30,11 +30,11 @@ pub mod configuration {
         # [arg(short, long, default_value_t = false)]
         verbose: bool,
 
-        /// RNG Seed (unsigned int value) [ default value from random default generator ]
+        /// RNG Seed (unsigned int) [default value from random default generator]
         # [arg(short, long)]
         seed: Option<u64>,
 
-        // list available random numbers generators (RNG).
+        /// list of available random numbers generators (RNG).
         # [arg(long="rng-list")]
         rnglist: bool,
     }

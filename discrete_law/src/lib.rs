@@ -1,3 +1,33 @@
+//! # Discrete law random experiment simulation
+//! 
+//! `discrete_law` contains utilities to simulate a random experiment with finite discrete sample space
+//! 
+//!
+//! # Example:
+//! ```
+//! fn main() {
+//!    let omega = ["A", "B", "C"];
+//!    let ratios = [ 1.0, 1.0, 2.0];
+//!    let exp = DiscreteFiniteRandomExperiment::new(omega.to_vec(), &ratios);
+//!
+//!    let rep: usize = 100_000;
+//!    println!("{rep} repetitions.\n");
+//!    println!("Fréquencies of A,B,C with probabilities 1/4,1/4,1/2 respectively, .");
+//!    exp.print_simulation(rep);
+//!
+//!    let omega: Vec<usize> = (1..7).collect();
+//!    let ratios =[ 1.0, 5.0, 5.0, 5.0, 5.0, 9.0];
+//!    let exp = DiscreteFiniteRandomExperiment::new(omega, &ratios);
+//!
+//!    println!("Fréquencies of 1 to 6  with probabilities 1/30,1/6,1/6,1/6,1/6,3/10 respectively.");
+//!    exp.print_simulation(100_000);
+//!}
+//! ```
+//! 
+//! `exp` implements `Distribution` trait so you can use `exp.sample(rng)` to get a sample.
+//! 
+//!  
+
 use iter_accumulate::IterAccumulate;
 use ordered_float::OrderedFloat;
 use rand::distr::{Distribution, Uniform};
@@ -38,16 +68,21 @@ fn cdf_from (ratios: &[f64]) -> Vec<OrderedFloat<f64>> {
     cdf
 }
 
+
+/// Discrete distribution struct
+/// Contains the probability law and it's cumulative distribution.
+/// The cumulative distribution contains OrderedFloat because of use of binary_search to find the index from the value.
 #[derive(Debug)]
 pub struct DiscreteFiniteDistribution {
-    pub law: Vec<f64>,
-    pub cdf:  Vec<OrderedFloat<f64>>
+    _law: Vec<f64>,
+    cdf:  Vec<OrderedFloat<f64>>
 }
 
+/// Distribution for the probability law.
 impl DiscreteFiniteDistribution {
     pub fn new( law: &[f64] ) -> Self {
         DiscreteFiniteDistribution { 
-            law: law.to_vec(), 
+            _law: law.to_vec(), 
             cdf: cdf_from( law)
         }
     }
@@ -66,12 +101,14 @@ impl Distribution<usize> for DiscreteFiniteDistribution {
     }
 }
 
+/// Simulate the experiment from sample space `omega` and law.
 #[derive(Debug)]
 pub struct DiscreteFiniteRandomExperiment<T> {
     pub omega: Vec<T>,
     pub distribution: DiscreteFiniteDistribution
 }
 
+/// Create the experiment from space sample `omega` and `law`
 impl<T> DiscreteFiniteRandomExperiment<T> {
     pub fn new( omega: Vec<T>, law: &[f64]) -> Self {
         DiscreteFiniteRandomExperiment {
@@ -92,21 +129,21 @@ impl<T: Clone> Distribution<T> for DiscreteFiniteRandomExperiment<T>
     }
 }
 
-pub fn print_simulation<T: std::fmt::Debug + Eq + Hash + Clone> (experiment: &DiscreteFiniteRandomExperiment<T>, n: usize) {
-    //let simulation: Vec<&T> = Vec::new();
-    let mut table: HashMap<T, i32> = HashMap::new();
-    let mut rng = rand::rng();
+/// utility to print frequencies of values in experiment repetition.
+impl<T: std::fmt::Debug + Eq + Hash + Clone> DiscreteFiniteRandomExperiment<T> {
+    pub fn print_simulation (&self, n: usize) {
+        let mut table: HashMap<T, i32> = HashMap::new();
+        let mut rng = rand::rng();
 
-    for _ in 0..n {
-        let o = experiment.sample(&mut rng);
-        //simuation.push(o);
-        *table.entry(o).or_insert(0) += 1;
-    }
+        for _ in 0..n {
+            let o = self.sample(&mut rng);
+            *table.entry(o).or_insert(0) += 1;
+        }
 
-    for o in &experiment.omega {
+        for o in &self.omega {
             println!("{:?}: {}", o, *table.get(o).unwrap_or(&0) as f64 / n as f64 );
+        }
     }
-    
 }
 
 
